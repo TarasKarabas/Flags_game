@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var showingResult = false
     @State private var showingScore = false
     @State private var scoreTitle = ""
+    @State private var selectedFlag = -1
     @State private var correctAnswerCount = 0
     @State private var uncorrectAnswerCount = 0
     @State private var tappedCount = 0
@@ -24,7 +25,8 @@ struct ContentView: View {
         }
     }
     
-    @State private  var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Russia", "Spain", "UK", "US"].shuffled()
+      static let allCountries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Russia", "Spain", "UK", "US"].shuffled()
+    @State private var countries = allCountries.shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
     
     var body: some View {
@@ -56,7 +58,14 @@ struct ContentView: View {
                         Button {
                             flagTapped(number)
                         } label: {
-                            FlagImage(name: countries[number])
+                            Image(countries[number])
+                                .shadow(radius: 10)
+                                .rotation3DEffect(.degrees((number == selectedFlag) ? 360 : 0), axis: (x: 0, y: 1, z: 0))
+                                .opacity(selectedFlag == -1 || selectedFlag == number ? 1 : 0.25)
+                                .blur(radius: selectedFlag == -1 || selectedFlag == number ? 0 : 3)
+//                                .saturation(selectedFlag == -1 || selectedFlag == number ? 1 : 0)
+//                                .scaleEffect(selectedFlag == -1 || selectedFlag == number ? 1 : 0.75)
+//                                .animation(.default, value: selectedFlag)
                         }
                     }
                 }
@@ -91,6 +100,8 @@ Yor falls \(uncorrectAnswerCount)
     }
     
     func flagTapped(_ number: Int) -> Int {
+        selectedFlag = number
+        
         if number == correctAnswer {
             scoreTitle = "Correct"
             correctAnswerCount += 1
@@ -107,19 +118,24 @@ Yor falls \(uncorrectAnswerCount)
             if tappedCount > 0 {
                 tappedCount -= 1
             }
+            
         }
         showingScore = true
         return tappedCount
     }
     
     func askQuestion() {
+        countries.remove(at: correctAnswer)
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+        questionCounter += 1
+        selectedFlag = -1
     }
     
     func newGame() {
         questionCounter = 0
         tappedCount = 0
+        countries = ContentView.allCountries
         askQuestion()
     }
 }
